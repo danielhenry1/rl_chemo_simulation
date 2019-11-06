@@ -1,4 +1,4 @@
-from submission import ChemoMDP
+from submission import ChemoMDP, QLearningAlgorithm
 
 
 smallMDP = submission.ChemoMDP(cardValues=[1,5], multiplicity=2, threshold=10, peekCost=1)
