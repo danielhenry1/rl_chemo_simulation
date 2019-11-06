@@ -61,7 +61,7 @@ class ChemoMDP(util.MDP):
 
 # Return a single-element list containing a binary (indicator) feature
 # for the existence of the (state, action) pair.  Provides no generalization.
-def FeatureExtractor(state, action):
+def ChemoFeatureExtractor(state, action):
     #TODO
 
 ############################################################
