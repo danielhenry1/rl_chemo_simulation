@@ -1,25 +1,33 @@
 import util, math, random
 from collections import defaultdict
 from util import ValueIteration
-
+import numpy as np
 
 class ChemoMDP(util.MDP):
-    def __init__(self, cardValues, multiplicity, threshold, peekCost):
+    def __init__(self, wellness, tumor_size, max_months, a, b, x, y, d, curedReward, deathReward):
         """
         """
-        self.cardValues = cardValues
-        self.multiplicity = multiplicity
-        self.threshold = threshold
-        self.peekCost = peekCost
+        self.wellness = wellness
+        self.tumor_size = tumor_size
+        self.max_months = max_months
+        self.a = a
+        self.b = b
+        self.x = x
+        self.y = y
+        self.d = d
+        self.curedReward = curedReward
+        self.deathReward = deathReward
+
 
     # Return the start state.
     def startState(self):
-        return (0, None, (self.multiplicity,) * len(self.cardValues))
+        #wellness, tumorsize, month
+        return (self.wellness, self.tumor_size, 0)
 
     # Return set of actions possible from |state|.
     # All logic for dealing with end states should be placed into the succAndProbReward function below.
     def actions(self, state):
-        return ['Take', 'Peek', 'Quit']
+        return np.linspace(0,1,11)
 
     # Given a |state| and |action|, return a list of (newState, prob, reward) tuples
     # corresponding to the states reachable from |state| when taking |action|.
@@ -34,7 +42,50 @@ class ChemoMDP(util.MDP):
     def succAndProbReward(self, state, action):
         # BEGIN_YOUR_CODE 
 
-        #TODO
+        W, M, t = state
+
+        # Terminal state
+        if W is None: return []
+
+        # cured!
+        if M <= 0: return [((None, None, t), 1, self.curedReward)]
+
+        #CALCULATE REWARD LATER
+
+        end_treatment_reward = -30 * (W+M)
+        if t == self.max_months: return [((None, None, t), 1, end_treatment_reward)]
+        
+        results = []
+
+        #calculate next values
+        deltaW = self.a * M + self.b * (action - self.d)
+        deltaM = self.x * W - self.y * (action - self.d)
+
+        newHealthyState = (W + deltaW, M + deltaM, t + 1)
+
+        currReward = 0
+        if deltaW < -.5:
+            currReward += 5
+        elif deltaW > .5:
+            currReward -= 5
+        if deltaM < -.5:
+            currReward += 5
+        elif deltaM > .5:
+            currReward -= 5 
+
+        #Living State
+        newProbLiving = np.exp(-(W+M)) + .15
+        results.append((newHealthyState, newProbLiving, currReward))
+
+        #Death State
+        deathState = (None, None, t + 1)
+        results.append((deathState, 1 - newProbLiving, self.deathReward))
+
+
+        return results
+
+
+
 
         # END_YOUR_CODE
 
@@ -44,7 +95,19 @@ class ChemoMDP(util.MDP):
 # Return a single-element list containing a binary (indicator) feature
 # for the existence of the (state, action) pair.  Provides no generalization.
 def ChemoFeatureExtractor(state, action):
-    #TODO
+    W, M, t = state
+    features = []
+    if W is not None:
+        w_bucket = W * 10 // 1
+        features.append(("W" + str(w_bucket),1))
+    if M is not None:
+        m_bucket = M * 10 // 1
+        features.append(("M" + str(m_bucket),1))
+    if W is not None and M is not None:
+        features.append(("W" + str(w_bucket) + "M" + str(m_bucket),1))
+    return features
+
+    
 
 ############################################################
 # Q learning

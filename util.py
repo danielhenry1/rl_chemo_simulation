@@ -21,7 +21,9 @@ class ValueIteration(MDPAlgorithm):
     The ValueIteration class is a subclass of util.MDPAlgorithm (see util.py).
     '''
     def solve(self, mdp, epsilon=0.001):
+        print("computin states bOIII")
         mdp.computeStates()
+        print(len(mdp.states))
         def computeQ(mdp, V, state, action):
             # Return Q(state, action) based on V(state).
             return sum(prob * (reward + mdp.discount() * V[newState]) \
@@ -36,12 +38,15 @@ class ValueIteration(MDPAlgorithm):
 
         V = collections.defaultdict(float)  # state -> value of state
         numIters = 0
+        print("iterating")
         while True:
+            print(numIters)
             newV = {}
             for state in mdp.states:
                 # This evaluates to zero for end states, which have no available actions (by definition)
                 newV[state] = max(computeQ(mdp, V, state, action) for action in mdp.actions(state))
             numIters += 1
+            print(max(abs(V[state] - newV[state]) for state in mdp.states))
             if max(abs(V[state] - newV[state]) for state in mdp.states) < epsilon:
                 V = newV
                 break
