@@ -2,16 +2,10 @@ import util, math, random
 from collections import defaultdict
 from util import ValueIteration
 
-############################################################
-# Problem 3a
 
 class ChemoMDP(util.MDP):
     def __init__(self, cardValues, multiplicity, threshold, peekCost):
         """
-        cardValues: list of integers (face values for each card included in the deck)
-        multiplicity: single integer representing the number of cards with each face value
-        threshold: maximum number of points (i.e. sum of card values in hand) before going bust
-        peekCost: how much it costs to peek at the next card
         """
         self.cardValues = cardValues
         self.multiplicity = multiplicity
@@ -19,20 +13,10 @@ class ChemoMDP(util.MDP):
         self.peekCost = peekCost
 
     # Return the start state.
-    # Look closely at this function to see an example of state representation for our Blackjack game.
-    # Each state is a tuple with 3 elements:
-    #   -- The first element of the tuple is the sum of the cards in the player's hand.
-    #   -- If the player's last action was to peek, the second element is the index
-    #      (not the face value) of the next card that will be drawn; otherwise, the
-    #      second element is None.
-    #   -- The third element is a tuple giving counts for each of the cards remaining
-    #      in the deck, or None if the deck is empty or the game is over (e.g. when
-    #      the user quits or goes bust).
     def startState(self):
         return (0, None, (self.multiplicity,) * len(self.cardValues))
 
     # Return set of actions possible from |state|.
-    # You do not need to modify this function.
     # All logic for dealing with end states should be placed into the succAndProbReward function below.
     def actions(self, state):
         return ['Take', 'Peek', 'Quit']
@@ -47,8 +31,6 @@ class ChemoMDP(util.MDP):
     #   don't include that state in the list returned by succAndProbReward.
 
 
-    #HandCost, PeekedCard, Deck
-    #newstate, prob, reward
     def succAndProbReward(self, state, action):
         # BEGIN_YOUR_CODE 
 
@@ -65,7 +47,7 @@ def FeatureExtractor(state, action):
     #TODO
 
 ############################################################
-# Problem 4a: Q learning
+# Q learning
 
 # Performs Q-learning.  Read util.RLAlgorithm for more information.
 # actions: a function that takes a state and returns a list of actions.
