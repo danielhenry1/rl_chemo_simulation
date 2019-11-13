@@ -47,8 +47,8 @@ class ChemoMDP(util.MDP):
         # Terminal state
         if W is None: return []
 
-        # cured!
-        if M <= 0: return [((None, None, t), 1, self.curedReward)]
+        # # cured!
+        # if M <= 0: return [((None, None, t), 1, self.curedReward)]
 
         #CALCULATE REWARD LATER
 
@@ -81,6 +81,9 @@ class ChemoMDP(util.MDP):
         deathState = (None, None, t + 1)
         results.append((deathState, 1 - newProbLiving, self.deathReward))
 
+        # cured!
+        if M + deltaM <= 0: return [((None, None, t), 1, self.curedReward)]
+
 
         return results
 
@@ -99,12 +102,12 @@ def ChemoFeatureExtractor(state, action):
     features = []
     if W is not None:
         w_bucket = W * 10 // 1
-        features.append(("W" + str(w_bucket),1))
+        features.append(("W" + str(w_bucket) + str(action),1))
     if M is not None:
         m_bucket = M * 10 // 1
-        features.append(("M" + str(m_bucket),1))
+        features.append(("M" + str(m_bucket) + str(action),1))
     if W is not None and M is not None:
-        features.append(("W" + str(w_bucket) + "M" + str(m_bucket),1))
+        features.append(("W" + str(w_bucket) + "M" + str(m_bucket) + str(action),1))
     return features
 
     
