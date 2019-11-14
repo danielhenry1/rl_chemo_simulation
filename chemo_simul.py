@@ -65,13 +65,23 @@ class ChemoMDP(util.MDP):
 
         currReward = 0
         if deltaW < -.5:
-            currReward += 5
+            currReward += -deltaW
         elif deltaW > .5:
-            currReward -= 5
+            currReward -= -deltaW
         if deltaM < -.5:
-            currReward += 5
+            currReward += -deltaM
         elif deltaM > .5:
-            currReward -= 5 
+            currReward -= -deltaM
+
+        # currReward = 0
+        # if deltaW < -.5:
+        #     currReward += 0.01
+        # elif deltaW > .5:
+        #     currReward -= 0.01
+        # if deltaM < -.5:
+        #     currReward += 0.01
+        # elif deltaM > .5:
+        #     currReward -= 0.01
 
         #Living State
         newProbLiving = np.exp(-(W+M)) + .15
@@ -79,10 +89,10 @@ class ChemoMDP(util.MDP):
 
         #Death State
         deathState = (None, None, t + 1)
-        results.append((deathState, 1 - newProbLiving, self.deathReward))
+        results.append((deathState, 1 - newProbLiving, self.tumor_size*(-5)))
 
         # cured!
-        if M + deltaM <= 0: return [((None, None, t), 1, self.curedReward)]
+        if M + deltaM <= 0: return [((None, None, t), 1, self.tumor_size*(5))]
 
 
         return results

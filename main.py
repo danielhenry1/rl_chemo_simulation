@@ -6,7 +6,7 @@ import json
 trials = 30000
 num_ranges = 300
 
-mdp = ChemoMDP(wellness=.2, tumor_size=1, max_months=6, a=.1, b=1.2, x=.15, y=1.2, d = .5, curedReward=500, deathReward=-500)
+mdp = ChemoMDP(wellness=.2, tumor_size=.5, max_months=6, a=.1, b=1.2, x=.15, y=1.2, d = .5, curedReward=500, deathReward=-500)
 
 # print("about to val iter")
 # stime = time.time()
@@ -27,6 +27,11 @@ mdp = ChemoMDP(wellness=.2, tumor_size=1, max_months=6, a=.1, b=1.2, x=.15, y=1.
 rl = QLearningAlgorithm(mdp.actions, mdp.discount(),
                                ChemoFeatureExtractor,
                                0.2)
+print("STATS MODE: ")
+print("Number of Trials: " + str(trials))
+print("Wellness: " + str(mdp.wellness))
+print("Tumor_size: " + str(mdp.tumor_size))
+
 print("beginning simulation")
 total_rewards = simulate(mdp, rl, trials, verbose=False)
 print("simulation finished")
