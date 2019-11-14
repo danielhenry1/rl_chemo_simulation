@@ -52,7 +52,7 @@ class ChemoMDP(util.MDP):
 
         #CALCULATE REWARD LATER
 
-        end_treatment_reward = -30 * (W+M)
+        end_treatment_reward = (2*M)
         if t == self.max_months: return [((None, None, t), 1, end_treatment_reward)]
         
         results = []
