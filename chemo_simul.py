@@ -63,6 +63,7 @@ class ChemoMDP(util.MDP):
 
         newHealthyState = (W + deltaW, M + deltaM, t + 1)
 
+        #Reward Function based on deltas
         currReward = 0
         if deltaW < -.5:
             currReward += -deltaW
@@ -73,6 +74,7 @@ class ChemoMDP(util.MDP):
         elif deltaM > .5:
             currReward -= -deltaM
 
+        
         # currReward = 0
         # if deltaW < -.5:
         #     currReward += 0.01
