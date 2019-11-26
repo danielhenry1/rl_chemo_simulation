@@ -4,11 +4,11 @@ from util import ValueIteration
 import numpy as np
 
 class ChemoMDP(util.MDP):
-    def __init__(self, wellness, tumor_size, max_months, a, b, x, y, d, curedReward, deathReward):
+    def __init__(self, max_months, a, b, x, y, d, curedReward, deathReward, k=10):
         """
         """
-        self.wellness = wellness
-        self.tumor_size = tumor_size
+        self.tumor_size = np.random.normal(.5, .25)
+        self.wellness = np.random.normal(.5, .25)
         self.max_months = max_months
         self.a = a
         self.b = b
@@ -17,17 +17,20 @@ class ChemoMDP(util.MDP):
         self.d = d
         self.curedReward = curedReward
         self.deathReward = deathReward
+        self.action_discretization = k
 
 
     # Return the start state.
     def startState(self):
         #wellness, tumorsize, month
+        self.wellness = np.random.normal(.5, .25)
+        self.tumor_size = np.random.normal(.5, .25)
         return (self.wellness, self.tumor_size, 0)
 
     # Return set of actions possible from |state|.
     # All logic for dealing with end states should be placed into the succAndProbReward function below.
     def actions(self, state):
-        return np.linspace(0,1,11)
+        return np.linspace(0,1,self.action_discretization + 1)
 
     # Given a |state| and |action|, return a list of (newState, prob, reward) tuples
     # corresponding to the states reachable from |state| when taking |action|.
@@ -94,6 +97,8 @@ class ChemoMDP(util.MDP):
         results.append((deathState, 1 - newProbLiving, self.tumor_size*(-5)))
 
         # cured!
+
+
         if M + deltaM <= 0: return [((None, None, t), 1, self.tumor_size*(5))]
 
 

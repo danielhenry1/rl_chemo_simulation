@@ -3,10 +3,10 @@ from util import simulate, ValueIteration
 import time
 import json
 
-trials = 30000
-num_ranges = 300
+trials = 70000
+num_ranges = 700
 
-mdp = ChemoMDP(wellness=.2, tumor_size=.8, max_months=6, a=.1, b=1.2, x=.15, y=1.2, d = .5, curedReward=500, deathReward=-500)
+mdp = ChemoMDP(max_months=6, a=.1, b=1.2, x=.15, y=1.2, d = .5, curedReward=500, deathReward=-500, k=50)
 
 # print("about to val iter")
 # stime = time.time()
