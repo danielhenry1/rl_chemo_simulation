@@ -1,7 +1,14 @@
 from chemo_simul import ChemoMDP, QLearningAlgorithm, ChemoFeatureExtractor
+from chemo_simul_complex import ChemoMDPComplex, QLearningAlgorithmComplex, ChemoComplexFeatureExtractor
 from util import simulate, ValueIteration
 import time
 import json
+
+################################################
+
+#SECTION 1: Simple Chemotherapy Models
+
+################################################
 
 trials = 70000
 num_ranges = 700
@@ -62,3 +69,51 @@ for i in range(num_ranges-1):
 	samples.append(sum(sample)/len(sample))
 for sample in samples[:30]:
 	print(sample)
+
+############################################################
+
+# Section 2: Complex Chemotherapy Models
+
+############################################################
+
+trials = 50000
+num_ranges = trials
+
+mdp = ChemoMDPComplex(n_cells_init=0.6, t_cells_init=1, i_cells_init=0.9)
+
+rl = QLearningAlgorithm(mdp.actions, mdp.discount(),
+                               ChemoComplexFeatureExtractor,
+                               0.2)
+
+
+print("Beginning Complex Simulation:")
+total_rewards = simulate(mdp, rl, trials, verbose=False)
+print("Finished Complex Simulation")
+
+rl.explorationProb = 0
+
+print("New Simulation")
+new_rewards = simulate(mdp, rl, trials, verbose=False)
+print("New Simulation donezo")
+
+
+samples = []
+for i in range(num_ranges-1):
+	range_size = trials / num_ranges
+	sample = total_rewards[int(i * range_size): int((i + 1) * range_size)]
+	samples.append(sum(sample)/len(sample))
+for sample in samples[:30]:
+	print(sample)
+
+print("no explorationprob")
+
+
+samples = []
+for i in range(num_ranges-1):
+	range_size = trials / num_ranges
+	sample = new_rewards[int(i * range_size): int((i + 1) * range_size)]
+	samples.append(sum(sample)/len(sample))
+for sample in samples[:30]:
+	print(sample)
+
+

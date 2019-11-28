@@ -3,6 +3,9 @@ from collections import defaultdict
 from util import ValueIteration
 import numpy as np
 
+
+#This Chemotherapy Model is based on "Reinforcement learning design for cancer clinical trials"
+
 class ChemoMDP(util.MDP):
     def __init__(self, max_months, a, b, x, y, d, curedReward, deathReward, k=10):
         """
@@ -104,10 +107,6 @@ class ChemoMDP(util.MDP):
 
         return results
 
-
-
-
-        # END_YOUR_CODE
 
     def discount(self):
         return 1

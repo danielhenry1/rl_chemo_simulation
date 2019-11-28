@@ -33,7 +33,7 @@ row = Immune repsonse rate
 
 '''
 
-class ChemoMDP(util.MDP):
+class ChemoMDPComplex(util.MDP):
     def __init__(self, n_cells_init, t_cells_init, i_cells_init, \
         a1=0.2, a2=0.3, a3=0.1, b1=1, b2=1, c1=1, c2=0.5, c3=1, c4=1, \
         d1=0.2, d2=1, r1=1.5, r2=1, s=0.33, alpha=0.3, row=0.01):
@@ -84,16 +84,18 @@ class ChemoMDP(util.MDP):
 
         n_cells, t_cells, i_cells, d_c = state
 
+        #print("ACTIONS: " + str(action))
+        #print("t_cells: " + str(t_cells))
         # Terminal state
-        if t_cells is 0: return []
+        if n_cells is None and t_cells is None and i_cells is None: return []
 
         # # cured!
         # if M <= 0: return [((None, None, t), 1, self.curedReward)]
 
         #CALCULATE REWARD LATER
 
-        end_treatment_reward = (2*M)
-        if t == self.max_months: return [((None, None, t), 1, end_treatment_reward)]
+        end_treatment_reward = 10
+        if t_cells < 0.05: return [((None, None, None, 0), 1, end_treatment_reward)]
         
         results = []
 
@@ -105,7 +107,7 @@ class ChemoMDP(util.MDP):
         - self.a2 * t_cells * d_c
 
         #New number of immune cells
-        new_i_cells = self.s + ((self.row * i_cells * t_cells) / (alpha + t_cells)) - self.c1 * i_cells * t_cells - self.d1 * i_cells \
+        new_i_cells = self.s + ((self.row * i_cells * t_cells) / (self.alpha + t_cells)) - self.c1 * i_cells * t_cells - self.d1 * i_cells \
         - self.a1 * i_cells * d_c
 
         #New drug concentration
@@ -120,17 +122,20 @@ class ChemoMDP(util.MDP):
             currReward = (t_cells - new_t_cells) / (t_cells)
 
         #Living State
-        newProbLiving = np.exp(-(W+M)) + .15
-        results.append((newHealthyState, newProbLiving, currReward))
+        if t_cells > 1:
+            newProbLiving = 0
+        else:
+            newProbLiving = t_cells / 1
+        results.append((nextState, newProbLiving, currReward))
 
         #Death State
-        deathState = (None, None, t + 1)
-        results.append((deathState, 1 - newProbLiving, self.tumor_size*(-5)))
+        deathState = (None, None, None, 0)
+        results.append((deathState, 1 - newProbLiving, currReward))
 
         # cured!
 
 
-        if t_cells == 0: return [((None, None, None, 0), 1, 20)]
+        if new_t_cells <= 0: return [((None, None, None, 0), 1, 20)]
 
 
         return results
@@ -145,17 +150,20 @@ class ChemoMDP(util.MDP):
 
 # Return a single-element list containing a binary (indicator) feature
 # for the existence of the (state, action) pair.  Provides no generalization.
-def ChemoFeatureExtractor(state, action):
-    W, M, t = state
+def ChemoComplexFeatureExtractor(state, action):
+    n_cells, t_cells, i_cells, d_c = state
     features = []
-    if W is not None:
-        w_bucket = W * 10 // 1
-        features.append(("W" + str(w_bucket) + str(action),1))
-    if M is not None:
-        m_bucket = M * 10 // 1
-        features.append(("M" + str(m_bucket) + str(action),1))
-    if W is not None and M is not None:
-        features.append(("W" + str(w_bucket) + "M" + str(m_bucket) + str(action),1))
+    if n_cells is not None:
+        n_bucket = n_cells * 10 // 1
+        features.append(("normal cells" + str(n_bucket) + str(action),1))
+    if t_cells is not None:
+        t_bucket = t_cells * 10 // 1
+        features.append(("tumor cells" + str(t_bucket) + str(action),1))
+    if i_cells is not None:
+        i_bucket = i_cells * 10 // 1
+        features.append(("immune cells" + str(i_bucket) + str(action),1))
+    if n_cells is not None and t_cells is not None and i_cells is not None:
+        features.append(("normal cells" + str(n_bucket) + "tumor cells" + str(t_bucket) + "immune cells" + str(i_bucket) + str(action),1))
     return features
 
     
@@ -169,7 +177,7 @@ def ChemoFeatureExtractor(state, action):
 # featureExtractor: a function that takes a state and action and returns a list of (feature name, feature value) pairs.
 # explorationProb: the epsilon value indicating how frequently the policy
 # returns a random action
-class QLearningAlgorithm(util.RLAlgorithm):
+class QLearningAlgorithmComplex(util.RLAlgorithm):
     def __init__(self, actions, discount, featureExtractor, explorationProb=0.2):
         self.actions = actions
         self.discount = discount
