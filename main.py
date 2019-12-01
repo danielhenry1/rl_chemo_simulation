@@ -3,6 +3,8 @@ from chemo_simul_complex import ChemoMDPComplex, QLearningAlgorithmComplex, Chem
 from util import simulate, ValueIteration
 import time
 import json
+import matplotlib.pyplot as plt
+import numpy as np
 
 ################################################
 
@@ -76,12 +78,12 @@ for sample in samples[:30]:
 
 ############################################################
 
-trials = 50000
-num_ranges = trials
+trials = 20000
+num_ranges = 10
 
-mdp = ChemoMDPComplex(n_cells_init=0.6, t_cells_init=1, i_cells_init=0.9)
+mdp = ChemoMDPComplex(n_cells_init=0.6, t_cells_init=.4, i_cells_init=0.9)
 
-rl = QLearningAlgorithm(mdp.actions, mdp.discount(),
+rl = QLearningAlgorithmComplex(mdp.actions, mdp.discount(),
                                ChemoComplexFeatureExtractor,
                                0.2)
 
@@ -97,13 +99,18 @@ new_rewards = simulate(mdp, rl, trials, verbose=False)
 print("New Simulation donezo")
 
 
-samples = []
+average_rewards = []
 for i in range(num_ranges-1):
 	range_size = trials / num_ranges
 	sample = total_rewards[int(i * range_size): int((i + 1) * range_size)]
-	samples.append(sum(sample)/len(sample))
-for sample in samples[:30]:
+	average_rewards.append(sum(sample)/len(sample))
+for sample in average_rewards[:30]:
 	print(sample)
+xaxis = np.linspace(0, trials, num_ranges)[1:]
+
+
+plt.plot(xaxis, average_rewards, 'r')
+
 
 print("no explorationprob")
 
@@ -116,4 +123,6 @@ for i in range(num_ranges-1):
 for sample in samples[:30]:
 	print(sample)
 
+plt.plot(xaxis, average_rewards, 'b')
+plt.show()
 
