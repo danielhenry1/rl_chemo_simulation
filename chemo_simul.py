@@ -179,7 +179,7 @@ class QLearningAlgorithm(util.RLAlgorithm):
             # if  self.numIters % 10000 == 1:
             #     print(self.explorationProb)
             if self.explorationProb != 0:
-                self.explorationProb = max(0.001, self.explorationProb - 0.1)
+                self.explorationProb = max(0.001, self.explorationProb - 0.01)
             # if self.explorationProb == 0.001:
             #     print(self.numIters)
             self.numIters += 1
