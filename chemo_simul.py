@@ -10,7 +10,7 @@ class ChemoMDP(util.MDP):
     def __init__(self, max_months, a, b, x, y, d, curedReward, deathReward, k=10):
         """
         """
-        self.tumor_size = np.random.normal(.5, .25)
+        self.tumor_size = np.random.normal(1.5, .25)
         self.wellness = np.random.normal(.5, .25)
         self.max_months = max_months
         self.a = a
@@ -55,6 +55,8 @@ class ChemoMDP(util.MDP):
 
         # # cured!
         # if M <= 0: return [((None, None, t), 1, self.curedReward)]
+        # if M + deltaM <= 0: return [((None, None, t), 1, self.tumor_size*(5))]
+        if M <= 0: return [((None, None, t), 1, 5)]
 
         #CALCULATE REWARD LATER
 
@@ -97,12 +99,11 @@ class ChemoMDP(util.MDP):
 
         #Death State
         deathState = (None, None, t + 1)
-        results.append((deathState, 1 - newProbLiving, self.tumor_size*(-5)))
-
+        #results.append((deathState, 1 - newProbLiving, self.tumor_size*(-5)))
+        results.append((deathState, 1 - newProbLiving, -5))
         # cured!
 
 
-        if M + deltaM <= 0: return [((None, None, t), 1, self.tumor_size*(5))]
 
 
         return results
@@ -138,14 +139,15 @@ def ChemoFeatureExtractor(state, action):
 # explorationProb: the epsilon value indicating how frequently the policy
 # returns a random action
 class QLearningAlgorithm(util.RLAlgorithm):
-    def __init__(self, actions, discount, featureExtractor, explorationProb=0.2):
+    def __init__(self, actions, discount, featureExtractor, explorationProb=0.2, decay = 'Normal', naive = -1):
         self.actions = actions
         self.discount = discount
         self.featureExtractor = featureExtractor
         self.explorationProb = explorationProb
         self.weights = defaultdict(float)
         self.numIters = 0
-
+        self.decay = decay
+        self.naive = naive
     # Return the Q function associated with the weights and features
     def getQ(self, state, action):
         score = 0
@@ -157,11 +159,80 @@ class QLearningAlgorithm(util.RLAlgorithm):
     # Here we use the epsilon-greedy algorithm: with probability
     # |explorationProb|, take a random action.
     def getAction(self, state):
-        self.numIters += 1
-        if random.random() < self.explorationProb:
-            return random.choice(self.actions(state))
-        else:
-            return max((self.getQ(state, action), action) for action in self.actions(state))[1]
+        # DECAYING EPSILON
+        if self.naive > -1:
+            self.numIters += 1
+            return self.naive
+        # Linear Decay
+        if self.decay == 'Lin':
+            # if  self.numIters % 10000 == 1:
+            #     print(self.explorationProb)
+            if self.explorationProb != 0:
+                self.explorationProb = max(0.001, self.explorationProb - 0.00001)
+            # if self.explorationProb == 0.001:
+            #     print(self.numIters)
+            self.numIters += 1
+            if random.random() < self.explorationProb:
+                return random.choice(self.actions(state))
+            else:
+                return max((self.getQ(state, action), action) for action in self.actions(state))[1]
+
+        # Linear Decay
+        if self.decay == 'LinNew':
+            # if  self.numIters % 10000 == 1:
+            #     print(self.explorationProb)
+            if self.explorationProb != 0:
+                self.explorationProb = max(0.001, self.explorationProb - 0.01)
+            # if self.explorationProb == 0.001:
+            #     print(self.numIters)
+            self.numIters += 1
+            if random.random() < self.explorationProb:
+                return random.choice(self.actions(state))
+            else:
+                return max((self.getQ(state, action), action) for action in self.actions(state))[1]
+
+        # Exponential Decay
+        if self.decay == 'Exp':
+            # if  self.numIters % 10000 == 1:
+            #     print(self.explorationProb)
+            if self.explorationProb != 0:
+                self.explorationProb = max(0.001, self.explorationProb * 0.99995)
+            # if self.explorationProb == 0.001:
+            #     print(self.numIters)
+            self.numIters += 1
+            if random.random() < self.explorationProb:
+                return random.choice(self.actions(state))
+            else:
+                return max((self.getQ(state, action), action) for action in self.actions(state))[1]
+
+        # Delayed Exponential Decay
+        if self.decay == 'Delay':
+            # if self.numIters % 1000 == 1:
+            #     print(self.explorationProb)
+            if self.explorationProb != 0:
+                if self.numIters < 20000:
+                    self.explorationProb = 0.5
+                elif self.numIters < 50000:
+                    self.explorationProb = 0.4
+                elif self.numIters < 70000:
+                    self.explorationProb = 0.3
+                else:
+                    self.explorationProb = max(0.001, self.explorationProb * 0.99999)
+            # if self.explorationProb == 0.001:
+            #     print(self.numIters)
+            self.numIters += 1
+            if random.random() < self.explorationProb:
+                return random.choice(self.actions(state))
+            else:
+                return max((self.getQ(state, action), action) for action in self.actions(state))[1]
+
+        # NORMAL
+        if self.decay == 'Normal':
+            self.numIters += 1
+            if random.random() < self.explorationProb:
+                return random.choice(self.actions(state))
+            else:
+                return max((self.getQ(state, action), action) for action in self.actions(state))[1]
 
     # Call this function to get the step size to update the weights.
     def getStepSize(self):
