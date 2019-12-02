@@ -161,7 +161,11 @@ def simulate(mdp, rl, numTrials=10, maxIterations=1000, verbose=False,
         raise Exception("Invalid probs: %s" % probs)
 
     totalRewards = []  # The rewards we get on each trial
+    cured = 0
+    died = 0
     for trial in range(numTrials):
+        if trial % 10000 == 0:
+            print(trial)
         state = mdp.startState()
         sequence = [state]
         totalDiscount = 1
@@ -177,6 +181,10 @@ def simulate(mdp, rl, numTrials=10, maxIterations=1000, verbose=False,
             # Choose a random transition
             i = sample([prob for newState, prob, reward in transitions])
             newState, prob, reward = transitions[i]
+            if reward == 5:
+                cured +=1
+            if reward == -5:
+                died += 1
             sequence.append(action)
             sequence.append(reward)
             sequence.append(newState)
@@ -188,4 +196,4 @@ def simulate(mdp, rl, numTrials=10, maxIterations=1000, verbose=False,
         if verbose:
             print(("Trial %d (totalReward = %s): %s" % (trial, totalReward, sequence)))
         totalRewards.append(totalReward)
-    return totalRewards
+    return totalRewards, cured/numTrials, died/numTrials
