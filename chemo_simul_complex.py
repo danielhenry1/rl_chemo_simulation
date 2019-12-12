@@ -60,27 +60,6 @@ class ChemoMDPComplex(util.MDP):
         self.rho = rho
         self.max_months = max_months
 
-
-
-        print("a1: " + str(self.a1))
-        print("a2: " + str(self.a2))
-        print("a3: " + str(self.a3))
-        print("b1: " + str(self.b1))
-        print("b2: " + str(self.b2))
-        print("c1: " + str(self.c1))
-        print("c2: " + str(self.c2))
-        print("c3: " + str(self.c3))
-        print("c4: " + str(self.c4))
-        print("d1: " + str(self.d1))
-        print("d2: " + str(self.d2))
-        print("r1: " + str(self.r1))
-        print("r2: " + str(self.r2))
-        print("s: " + str(self.s))
-        print("alpha: " + str(self.alpha))
-        print("rho: " + str(self.rho))
-
-
-
     # Return the start state.
     def startState(self):
         #(num of normal cells, num of tumor cells, num of immune cells, drug concentration, max_months)

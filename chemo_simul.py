@@ -10,7 +10,7 @@ class ChemoMDP(util.MDP):
     def __init__(self, max_months, a, b, x, y, d, curedReward, deathReward, k=10):
         """
         """
-        self.tumor_size = np.random.normal(1.5, .25)
+        self.tumor_size = np.random.normal(.5, .25)
         self.wellness = np.random.normal(.5, .25)
         self.max_months = max_months
         self.a = a
@@ -31,20 +31,10 @@ class ChemoMDP(util.MDP):
         return (self.wellness, self.tumor_size, 0)
 
     # Return set of actions possible from |state|.
-    # All logic for dealing with end states should be placed into the succAndProbReward function below.
     def actions(self, state):
         return np.linspace(0,1,self.action_discretization + 1)
 
-    # Given a |state| and |action|, return a list of (newState, prob, reward) tuples
-    # corresponding to the states reachable from |state| when taking |action|.
-    # A few reminders:
-    # * Indicate a terminal state (after quitting, busting, or running out of cards)
-    #   by setting the deck to None.
-    # * If |state| is an end state, you should return an empty list [].
-    # * When the probability is 0 for a transition to a particular new state,
-    #   don't include that state in the list returned by succAndProbReward.
-
-
+    #Calculate next states and probabilities given an action. 
     def succAndProbReward(self, state, action):
         # BEGIN_YOUR_CODE 
 
@@ -54,13 +44,10 @@ class ChemoMDP(util.MDP):
         if W is None: return []
 
         # # cured!
-        # if M <= 0: return [((None, None, t), 1, self.curedReward)]
-        # if M + deltaM <= 0: return [((None, None, t), 1, self.tumor_size*(5))]
         if M <= 0: return [((None, None, t), 1, 5)]
 
-        #CALCULATE REWARD LATER
 
-        end_treatment_reward = (2*M)
+        end_treatment_reward = (2*self.tumor_size)
         if t == self.max_months: return [((None, None, t), 1, end_treatment_reward)]
         
         results = []
@@ -82,29 +69,15 @@ class ChemoMDP(util.MDP):
         elif deltaM > .5:
             currReward -= -deltaM
 
-        
-        # currReward = 0
-        # if deltaW < -.5:
-        #     currReward += 0.01
-        # elif deltaW > .5:
-        #     currReward -= 0.01
-        # if deltaM < -.5:
-        #     currReward += 0.01
-        # elif deltaM > .5:
-        #     currReward -= 0.01
 
         #Living State
-        newProbLiving = np.exp(-(W+M)) + .15
+        newProbLiving = np.exp(-(W+M)) + .2
         results.append((newHealthyState, newProbLiving, currReward))
 
         #Death State
         deathState = (None, None, t + 1)
         #results.append((deathState, 1 - newProbLiving, self.tumor_size*(-5)))
         results.append((deathState, 1 - newProbLiving, -5))
-        # cured!
-
-
-
 
         return results
 
@@ -112,20 +85,21 @@ class ChemoMDP(util.MDP):
     def discount(self):
         return 1
 
-# Return a single-element list containing a binary (indicator) feature
-# for the existence of the (state, action) pair.  Provides no generalization.
-def ChemoFeatureExtractor(state, action):
-    W, M, t = state
-    features = []
-    if W is not None:
-        w_bucket = W * 10 // 1
-        features.append(("W" + str(w_bucket) + str(action),1))
-    if M is not None:
-        m_bucket = M * 10 // 1
-        features.append(("M" + str(m_bucket) + str(action),1))
-    if W is not None and M is not None:
-        features.append(("W" + str(w_bucket) + "M" + str(m_bucket) + str(action),1))
-    return features
+#Returns a feature extractor with the given discretization 'k'
+def ChemoFeatureExtractorWrapper(k):
+    def ChemoFeatureExtractor(state, action):
+        W, M, t = state
+        features = []
+        if W is not None:
+            w_bucket = math.floor(W*k)
+            features.append(("W" + str(w_bucket) + str(action),1))
+        if M is not None:
+            m_bucket = math.floor(W*k)
+            features.append(("M" + str(m_bucket) + str(action),1))
+        if W is not None and M is not None:
+            features.append(("W" + str(w_bucket) + "M" + str(m_bucket) + str(action),1))
+        return features
+    return ChemoFeatureExtractor
 
     
 

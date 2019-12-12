@@ -196,4 +196,5 @@ def simulate(mdp, rl, numTrials=10, maxIterations=1000, verbose=False,
         if verbose:
             print(("Trial %d (totalReward = %s): %s" % (trial, totalReward, sequence)))
         totalRewards.append(totalReward)
+        
     return totalRewards, cured/numTrials, died/numTrials

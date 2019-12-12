@@ -1,12 +1,10 @@
-from chemo_simul import ChemoMDP, QLearningAlgorithm, ChemoFeatureExtractor_wrap
+from chemo_simul import ChemoMDP, QLearningAlgorithm, ChemoFeatureExtractorWrapper
+
 from util import simulate, ValueIteration
 import time
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
-trials = 20000
-num_ranges = 100
 
 def heatmap(data, row_labels, col_labels, ax=None,
             cbar_kw={}, cbarlabel="", **kwargs):
@@ -68,32 +66,37 @@ def heatmap(data, row_labels, col_labels, ax=None,
 
     return im, cbar
 
-mdp = ChemoMDP(max_months=6, a=.1, b=1.5, x=.15, y=1.2, d = 0.5, curedReward=5, deathReward=-5, k=50)
+if __name__ == "__main__":
+    trials = 20000
+    ranges = 100
+    k = 20
 
-rl = QLearningAlgorithm(mdp.actions, mdp.discount(),
-                            ChemoFeatureExtractor_wrap(50),
-                                0.2)
+    mdp = ChemoMDP(max_months=6, a=.1, b=1.5, x=.15, y=1.2, d = 0.5, curedReward=5, deathReward=-5, k=k)
 
-learning_rewards = simulate(mdp, rl, trials, verbose=False)
-rl.explorationProb = 0
-optimal_pol_rewards = simulate(mdp, rl, trials, verbose=False)
+    rl = QLearningAlgorithm(mdp.actions, mdp.discount(),
+                                ChemoFeatureExtractor_wrap(k),
+                                    0.2)
 
-wmin = 0
-wmax = 20
-mmin = 0
-mmax = 15
-#i is wellness, j is tumor
-hmap = np.zeros((wmax-wmin,mmax-mmin))
-for i in range(wmin,wmax):
-	for j in range(mmin, mmax):
-		state = (i / 10, j / 10, 1)
-		hmap[i-wmin][j-mmin] = max((rl.getQ(state, action), action) for action in rl.actions(state))[1]
+    learning_rewards = simulate(mdp, rl, trials, verbose=False)
+    rl.explorationProb = 0
+    optimal_pol_rewards = simulate(mdp, rl, trials, verbose=False)
 
-row_labels = np.arange(wmin, wmax)
-col_labels = np.arange(mmin, mmax)
+    wmin = 0
+    wmax = 20
+    mmin = 0
+    mmax = 15
+    #i is wellness, j is tumor
+    hmap = np.zeros((wmax-wmin,mmax-mmin))
+    for i in range(wmin,wmax):
+    	for j in range(mmin, mmax):
+    		state = (i / 10, j / 10, 1)
+    		hmap[i-wmin][j-mmin] = max((rl.getQ(state, action), action) for action in rl.actions(state))[1]
 
-im, cbar = heatmap(hmap, row_labels, col_labels, cbarlabel="Dosage")
-plt.xlabel('Tumor Size')
-plt.ylabel('Wellness Measure')
-plt.title('Learned Optimal Action at Patient States')
-plt.show()
+    row_labels = np.arange(wmin, wmax)
+    col_labels = np.arange(mmin, mmax)
+
+    im, cbar = heatmap(hmap, row_labels, col_labels, cbarlabel="Dosage")
+    plt.xlabel('Tumor Size')
+    plt.ylabel('Wellness Measure')
+    plt.title('Learned Optimal Action at Patient States')
+    plt.show()
